@@ -131,6 +131,15 @@ program
   });
 
 program
+  .command("hello")
+  .description("Print a hello-world greeting with peer name and timestamp")
+  .action(() => {
+    const peerName = process.env.CLAUDE_SYNC_PEER_NAME ?? "unknown";
+    const timestamp = new Date().toISOString();
+    console.log(`Hello from claude-sync! peer=${peerName} time=${timestamp}`);
+  });
+
+program
   .command("git-sync")
   .description("Stage, commit, push, and optionally notify peers")
   .requiredOption("--message <text>", "Commit message")
