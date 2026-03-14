@@ -168,8 +168,10 @@ node packages/mcp/dist/cli.js git-sync --message "fix: update tests" --notify
 
 ## Security
 
-- Auth uses timing-safe token comparison
-- TLS should be handled by a reverse proxy in production
+- **Auth token is stored in plaintext** in Claude Code's config (`~/.claude.json` or `.mcp.json`). This is standard for MCP servers but worth knowing.
+- **The relay uses plain `ws://`** — no encryption. Put it behind a reverse proxy (nginx/Caddy) with TLS for anything over the internet. Fine on localhost or a private network.
+- **`git_sync` checks for secrets before staging.** It will refuse to commit files matching common sensitive patterns (`.env`, `*.pem`, `*.key`, `credentials.json`, etc.). If it blocks a file you need, add it to your `.gitignore` review and stage manually.
+- Auth uses timing-safe token comparison (`crypto.timingSafeEqual`)
 - `.mcp.json` is gitignored (contains secrets) — `.mcp.json.example` is provided as a template
 - Relay enforces a 1MB max message size
 

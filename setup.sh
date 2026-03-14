@@ -47,7 +47,8 @@ npm --prefix "$INSTALL_DIR" run build
 # Collect configuration
 echo
 read -rp "Relay server URL (e.g. ws://your-server:8787): " SYNC_URL
-read -rp "Shared token: " SYNC_TOKEN
+read -rsp "Shared token: " SYNC_TOKEN
+echo
 read -rp "Peer name for this machine (e.g. macbook-pro): " PEER_NAME
 
 # Register MCP server with Claude Code
