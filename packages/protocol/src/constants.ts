@@ -5,3 +5,5 @@ export const MAX_MESSAGE_SIZE = 1024 * 1024; // 1MB
 export const RECONNECT_INTERVAL_MS = 3000;
 export const MAX_RECONNECT_ATTEMPTS = 10;
 export const HEARTBEAT_INTERVAL_MS = 30_000;
+export const MDNS_SERVICE_TYPE = "claude-sync";
+export const MDNS_DISCOVERY_TIMEOUT_MS = 5000;

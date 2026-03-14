@@ -12,23 +12,25 @@ import { sendResult } from "./tools/send-result.js";
 import { checkInbox } from "./tools/check-inbox.js";
 import { gitSync } from "./tools/git-sync.js";
 import { pingPeer } from "./tools/ping-peer.js";
+import { discoverRelay } from "./discovery.js";
 
-const url = process.env.CLAUDE_SYNC_URL;
-const token = process.env.CLAUDE_SYNC_TOKEN;
 const peerName = process.env.CLAUDE_SYNC_PEER_NAME ?? `peer-${crypto.randomUUID().slice(0, 8)}`;
 
-if (!url || !token) {
-  console.error("CLAUDE_SYNC_URL and CLAUDE_SYNC_TOKEN are required");
-  process.exit(1);
+function urlResolver(): Promise<string> {
+  if (process.env.CLAUDE_SYNC_URL) return Promise.resolve(process.env.CLAUDE_SYNC_URL);
+  return discoverRelay(process.env.CLAUDE_SYNC_RELAY_NAME).then((r) => r.url);
 }
 
-const client = new SyncClient(url, token, peerName);
+const client = new SyncClient(urlResolver, peerName);
 const taskStore = new TaskStore();
 
 // Wire up incoming messages to task store
 client.onMessage((msg: Message) => {
+  console.error(`[claude-sync] Received message: type=${msg.type} from=${msg.from} to=${msg.to}`);
   if (msg.type === MessageTypes.TASK_REQUEST) {
+    console.error(`[claude-sync] Adding task to inbox: taskId=${msg.payload.taskId}`);
     taskStore.addToInbox(msg.from, msg.payload);
+    console.error(`[claude-sync] Inbox count: ${taskStore.inboxCount}`);
   } else if (msg.type === MessageTypes.TASK_RESULT) {
     taskStore.resolveTask(msg.payload.taskId, msg.payload);
   }
@@ -154,7 +156,7 @@ server.tool(
 
 async function main() {
   await client.connect();
-  console.error(`Connected as "${peerName}" to ${url}`);
+  console.error(`Connected as "${peerName}"`);
 
   const transport = new StdioServerTransport();
   await server.connect(transport);

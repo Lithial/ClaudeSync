@@ -19,8 +19,7 @@ export class SyncClient {
   private _closing = false;
 
   constructor(
-    private readonly url: string,
-    private readonly token: string,
+    private readonly urlOrResolver: string | (() => Promise<string>),
     private readonly peerName: string,
   ) {}
 
@@ -32,16 +31,20 @@ export class SyncClient {
     this.handlers.push(handler);
   }
 
-  connect(): Promise<void> {
+  async connect(): Promise<void> {
+    const url = typeof this.urlOrResolver === "string"
+      ? this.urlOrResolver
+      : await this.urlOrResolver();
+
     return new Promise((resolve, reject) => {
-      this.ws = new WebSocket(this.url);
+      this.ws = new WebSocket(url);
 
       this.ws.on("open", () => {
         const registerMsg = createMessage(
           MessageTypes.PEER_REGISTER,
           this.peerName,
           "server",
-          { name: this.peerName, token: this.token },
+          { name: this.peerName },
         );
         this.ws!.send(JSON.stringify(registerMsg));
         this._connected = true;
@@ -70,7 +73,7 @@ export class SyncClient {
 
       this.ws.on("close", (code) => {
         this._connected = false;
-        if (!this._closing && code !== 4005 && code !== 4006) {
+        if (!this._closing && code !== 4006) {
           this.scheduleReconnect();
         }
       });

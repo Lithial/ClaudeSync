@@ -7,15 +7,11 @@ import {
   MAX_MESSAGE_SIZE,
 } from "@claude-sync/protocol";
 import { PeerRegistry } from "./peers.js";
-import { validateToken } from "./auth.js";
 
 export class Relay {
   readonly peers = new PeerRegistry();
-  private readonly token: string;
 
-  constructor(token: string) {
-    this.token = token;
-  }
+  constructor() {}
 
   handleConnection(ws: WebSocket): void {
     // Peer must register within 5 seconds
@@ -45,11 +41,6 @@ export class Relay {
         return;
       }
 
-      if (!validateToken(msg.payload.token, this.token)) {
-        ws.close(4005, "Authentication failed");
-        return;
-      }
-
       const name = msg.payload.name;
       const result = this.peers.add(name, ws);
       if (!result.added) {
@@ -57,8 +48,10 @@ export class Relay {
         return;
       }
       if (result.displaced) {
+        console.log(`[${new Date().toISOString()}] peer displaced: ${name}`);
         result.displaced.close(4007, "Displaced by new connection");
       }
+      console.log(`[${new Date().toISOString()}] peer connected: ${name} (${this.peers.size} total)`);
 
       // Notify all other peers
       this.broadcast(
@@ -114,6 +107,7 @@ export class Relay {
 
   private handleDisconnect(name: string): void {
     if (this.peers.remove(name)) {
+      console.log(`[${new Date().toISOString()}] peer disconnected: ${name} (${this.peers.size} remaining)`);
       this.broadcast(
         createMessage(MessageTypes.PEER_LEFT, "server", null, { name }),
         name,

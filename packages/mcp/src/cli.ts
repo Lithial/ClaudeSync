@@ -3,6 +3,7 @@ import { Command } from "commander";
 import { MessageTypes, type Message, DEFAULT_TASK_TIMEOUT_MS } from "@claude-sync/protocol";
 import { SyncClient } from "./client.js";
 import { TaskStore } from "./task-store.js";
+import { discoverRelay } from "./discovery.js";
 import { listPeers } from "./tools/list-peers.js";
 import { sendTask } from "./tools/send-task.js";
 import { waitForResponse } from "./tools/wait-for-response.js";
@@ -12,19 +13,17 @@ import { gitSync as gitSyncTool } from "./tools/git-sync.js";
 import { pingPeer } from "./tools/ping-peer.js";
 
 function getConfig() {
-  const url = process.env.CLAUDE_SYNC_URL;
-  const token = process.env.CLAUDE_SYNC_TOKEN;
   const peerName = process.env.CLAUDE_SYNC_PEER_NAME ?? `cli-${crypto.randomUUID().slice(0, 8)}`;
-  if (!url || !token) {
-    console.error("CLAUDE_SYNC_URL and CLAUDE_SYNC_TOKEN environment variables are required");
-    process.exit(1);
+  function urlResolver(): Promise<string> {
+    if (process.env.CLAUDE_SYNC_URL) return Promise.resolve(process.env.CLAUDE_SYNC_URL);
+    return discoverRelay(process.env.CLAUDE_SYNC_RELAY_NAME).then((r) => r.url);
   }
-  return { url, token, peerName };
+  return { urlResolver, peerName };
 }
 
 async function withClient<T>(fn: (client: SyncClient, peerName: string, taskStore: TaskStore) => Promise<T>): Promise<T> {
-  const { url, token, peerName } = getConfig();
-  const client = new SyncClient(url, token, peerName);
+  const { urlResolver, peerName } = getConfig();
+  const client = new SyncClient(urlResolver, peerName);
   const taskStore = new TaskStore();
 
   client.onMessage((msg: Message) => {
@@ -146,14 +145,12 @@ program
   .option("--branch <branch>", "Branch to push")
   .option("--notify", "Notify peers after push")
   .action(async (opts) => {
+    const { urlResolver, peerName } = getConfig();
     const client = opts.notify ? await (async () => {
-      const { url, token, peerName } = getConfig();
-      const c = new SyncClient(url, token, peerName);
+      const c = new SyncClient(urlResolver, peerName);
       await c.connect();
       return c;
     })() : null;
-
-    const { peerName } = getConfig();
     const result = gitSyncTool(client, peerName, {
       message: opts.message,
       branch: opts.branch,

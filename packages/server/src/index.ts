@@ -1,18 +1,16 @@
 #!/usr/bin/env node
 import { WebSocketServer } from "ws";
-import { DEFAULT_PORT, DEFAULT_HOST } from "@claude-sync/protocol";
+import { Bonjour } from "bonjour-service";
+import os from "node:os";
+import { DEFAULT_PORT, DEFAULT_HOST, MDNS_SERVICE_TYPE } from "@claude-sync/protocol";
 import { Relay } from "./relay.js";
-
-const token = process.env.CLAUDE_SYNC_TOKEN;
-if (!token) {
-  console.error("Error: CLAUDE_SYNC_TOKEN environment variable is required");
-  process.exit(1);
-}
 
 const port = parseInt(process.env.CLAUDE_SYNC_PORT ?? String(DEFAULT_PORT), 10);
 const host = process.env.CLAUDE_SYNC_HOST ?? DEFAULT_HOST;
+const relayName = process.env.CLAUDE_SYNC_RELAY_NAME ?? os.hostname();
 
-const relay = new Relay(token);
+const relay = new Relay();
+const bonjour = new Bonjour();
 
 const wss = new WebSocketServer({ host, port });
 
@@ -22,6 +20,8 @@ wss.on("connection", (ws) => {
 
 wss.on("listening", () => {
   console.log(`claude-sync relay server listening on ${host}:${port}`);
+  bonjour.publish({ name: relayName, type: MDNS_SERVICE_TYPE, port });
+  console.log(`Advertising as "${relayName}" via mDNS`);
 });
 
 wss.on("error", (err) => {
@@ -31,7 +31,10 @@ wss.on("error", (err) => {
 
 function shutdown() {
   console.log("\nShutting down...");
-  wss.close(() => process.exit(0));
+  bonjour.unpublishAll(() => {
+    bonjour.destroy();
+    wss.close(() => process.exit(0));
+  });
 }
 
 process.on("SIGINT", shutdown);

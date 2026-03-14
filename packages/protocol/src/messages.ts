@@ -24,7 +24,6 @@ export interface Envelope {
 
 export interface PeerRegisterPayload {
   name: string;
-  token: string;
 }
 
 export interface PeerInfo {
