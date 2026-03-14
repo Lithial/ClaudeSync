@@ -41,11 +41,21 @@ The script will:
 
 Run this on **each machine** you want to coordinate.
 
+### Relay server setup
+
+Run the relay setup on whatever machine will host the relay (a cloud VM, your Mac, etc.):
+
+```bash
+git clone https://github.com/Lithial/ClaudeSync.git
+cd ClaudeSync
+bash setup-relay.sh
+```
+
+This will build the server, prompt for port/token (or generate a token), and optionally install it as a **systemd service** (Linux) or **launchd agent** (macOS) so it stays running across reboots.
+
 ### Manual setup
 
-#### 1. Deploy the relay server
-
-Pick any machine (or a cloud VM) to host the relay:
+#### 1. Deploy the relay server (without the script)
 
 ```bash
 git clone https://github.com/Lithial/ClaudeSync.git
