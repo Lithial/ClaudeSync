@@ -11,6 +11,7 @@ import { waitForResponse } from "./tools/wait-for-response.js";
 import { sendResult } from "./tools/send-result.js";
 import { checkInbox } from "./tools/check-inbox.js";
 import { gitSync } from "./tools/git-sync.js";
+import { pingPeer } from "./tools/ping-peer.js";
 
 const url = process.env.CLAUDE_SYNC_URL;
 const token = process.env.CLAUDE_SYNC_TOKEN;
@@ -37,6 +38,24 @@ const server = new McpServer({
   name: "claude-sync",
   version: "0.1.0",
 });
+
+server.tool(
+  "ping_peer",
+  "Ping a remote peer to test connectivity. Returns round-trip time in milliseconds.",
+  {
+    to: z.string().describe("Target peer name to ping"),
+    timeout: z.number().optional().describe("Timeout in ms (default: 5000)"),
+  },
+  async ({ to, timeout }) => {
+    try {
+      const result = await pingPeer(client, peerName, to, timeout);
+      return { content: [{ type: "text", text: `Pong from "${result.peer}" — ${result.roundTripMs}ms round trip` }] };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return { content: [{ type: "text", text: `Error: ${message}` }], isError: true };
+    }
+  },
+);
 
 server.tool(
   "list_peers",

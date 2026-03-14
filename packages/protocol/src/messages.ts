@@ -7,6 +7,8 @@ export const MessageTypes = {
   TASK_REQUEST: "task:request",
   TASK_RESULT: "task:result",
   TASK_STATUS: "task:status",
+  PING: "ping",
+  PONG: "pong",
   ERROR: "error",
 } as const;
 
@@ -67,6 +69,17 @@ export interface TaskStatusPayload {
   message?: string;
 }
 
+export interface PingPayload {
+  pingId: string;
+  sentAt: number;
+}
+
+export interface PongPayload {
+  pingId: string;
+  sentAt: number;
+  receivedAt: number;
+}
+
 export interface ErrorPayload {
   code: string;
   message: string;
@@ -81,6 +94,8 @@ export type Message =
   | (Envelope & { type: typeof MessageTypes.TASK_REQUEST; payload: TaskRequestPayload })
   | (Envelope & { type: typeof MessageTypes.TASK_RESULT; payload: TaskResultPayload })
   | (Envelope & { type: typeof MessageTypes.TASK_STATUS; payload: TaskStatusPayload })
+  | (Envelope & { type: typeof MessageTypes.PING; payload: PingPayload })
+  | (Envelope & { type: typeof MessageTypes.PONG; payload: PongPayload })
   | (Envelope & { type: typeof MessageTypes.ERROR; payload: ErrorPayload });
 
 export function createEnvelope(

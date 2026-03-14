@@ -52,6 +52,14 @@ export class SyncClient {
       this.ws.on("message", (raw) => {
         try {
           const msg = parseMessage(raw.toString());
+          // Auto-respond to pings
+          if (msg.type === MessageTypes.PING) {
+            this.send(createMessage(MessageTypes.PONG, this.peerName, msg.from, {
+              pingId: msg.payload.pingId,
+              sentAt: msg.payload.sentAt,
+              receivedAt: Date.now(),
+            }));
+          }
           for (const handler of this.handlers) {
             handler(msg);
           }

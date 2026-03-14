@@ -9,6 +9,7 @@ import { waitForResponse } from "./tools/wait-for-response.js";
 import { sendResult as sendResultTool } from "./tools/send-result.js";
 import { checkInbox as checkInboxTool } from "./tools/check-inbox.js";
 import { gitSync as gitSyncTool } from "./tools/git-sync.js";
+import { pingPeer } from "./tools/ping-peer.js";
 
 function getConfig() {
   const url = process.env.CLAUDE_SYNC_URL;
@@ -54,6 +55,18 @@ program
     await withClient(async (client, peerName) => {
       const peers = await listPeers(client, peerName);
       console.log(JSON.stringify(peers, null, 2));
+    });
+  });
+
+program
+  .command("ping")
+  .description("Ping a remote peer to test connectivity")
+  .argument("<peer>", "Target peer name")
+  .option("--timeout <ms>", "Timeout in milliseconds", "5000")
+  .action(async (peer: string, opts: { timeout: string }) => {
+    await withClient(async (client, peerName) => {
+      const result = await pingPeer(client, peerName, peer, parseInt(opts.timeout, 10));
+      console.log(`Pong from "${result.peer}" — ${result.roundTripMs}ms round trip`);
     });
   });
 
