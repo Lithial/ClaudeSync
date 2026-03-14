@@ -1,0 +1,19 @@
+{
+  "name": "claude-sync",
+  "private": true,
+  "workspaces": [
+    "packages/protocol",
+    "packages/server",
+    "packages/mcp"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "clean": "rm -rf packages/*/dist",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "~5.7.3",
+    "vitest": "^3.1.1"
+  }
+}

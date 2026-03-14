@@ -1,0 +1,7 @@
+export const DEFAULT_PORT = 8787;
+export const DEFAULT_HOST = "0.0.0.0";
+export const DEFAULT_TASK_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+export const MAX_MESSAGE_SIZE = 1024 * 1024; // 1MB
+export const RECONNECT_INTERVAL_MS = 3000;
+export const MAX_RECONNECT_ATTEMPTS = 10;
+export const HEARTBEAT_INTERVAL_MS = 30_000;

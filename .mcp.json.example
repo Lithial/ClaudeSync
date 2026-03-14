@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "claude-sync": {
+      "command": "node",
+      "args": ["packages/mcp/dist/index.js"],
+      "env": {
+        "CLAUDE_SYNC_URL": "ws://your-server:8787",
+        "CLAUDE_SYNC_TOKEN": "your-shared-secret-here",
+        "CLAUDE_SYNC_PEER_NAME": "my-machine-name"
+      }
+    }
+  }
+}
