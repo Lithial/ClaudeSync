@@ -51,9 +51,13 @@ export class Relay {
       }
 
       const name = msg.payload.name;
-      if (!this.peers.add(name, ws)) {
-        ws.close(4006, "Peer name already taken");
+      const result = this.peers.add(name, ws);
+      if (!result.added) {
+        ws.close(4006, "Registration failed");
         return;
+      }
+      if (result.displaced) {
+        result.displaced.close(4007, "Displaced by new connection");
       }
 
       // Notify all other peers

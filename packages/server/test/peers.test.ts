@@ -5,16 +5,25 @@ describe("PeerRegistry", () => {
   it("adds and lists peers", () => {
     const registry = new PeerRegistry();
     const fakeWs = {} as any;
-    expect(registry.add("alice", fakeWs)).toBe(true);
+    const result = registry.add("alice", fakeWs);
+    expect(result.added).toBe(true);
+    expect(result.displaced).toBeNull();
     expect(registry.size).toBe(1);
     expect(registry.list()[0].name).toBe("alice");
   });
 
-  it("rejects duplicate names", () => {
+  it("displaces existing peer with same name", () => {
     const registry = new PeerRegistry();
-    const fakeWs = {} as any;
-    registry.add("alice", fakeWs);
-    expect(registry.add("alice", fakeWs)).toBe(false);
+    const oldWs = { id: "old" } as any;
+    const newWs = { id: "new" } as any;
+    registry.add("alice", oldWs);
+    const result = registry.add("alice", newWs);
+    expect(result.added).toBe(true);
+    if (result.added) {
+      expect(result.displaced).toBe(oldWs);
+    }
+    expect(registry.size).toBe(1);
+    expect(registry.get("alice")?.ws).toBe(newWs);
   });
 
   it("removes peers", () => {

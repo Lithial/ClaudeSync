@@ -141,4 +141,4 @@ program
     client?.close();
   });
 
-program.parse();
+program.parseAsync();

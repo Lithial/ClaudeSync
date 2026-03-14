@@ -16,6 +16,7 @@ export class SyncClient {
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private handlers: MessageHandler[] = [];
   private _connected = false;
+  private _closing = false;
 
   constructor(
     private readonly url: string,
@@ -61,7 +62,7 @@ export class SyncClient {
 
       this.ws.on("close", (code) => {
         this._connected = false;
-        if (code !== 4005 && code !== 4006) {
+        if (!this._closing && code !== 4005 && code !== 4006) {
           this.scheduleReconnect();
         }
       });
@@ -83,6 +84,7 @@ export class SyncClient {
   }
 
   close(): void {
+    this._closing = true;
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
     }

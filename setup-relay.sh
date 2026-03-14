@@ -79,7 +79,7 @@ case "$OS" in
     read -rp "Install as a systemd service? (y/N): " INSTALL_SERVICE
     if [[ "$INSTALL_SERVICE" =~ ^[Yy]$ ]]; then
       SERVICE_FILE="/etc/systemd/system/claude-sync-relay.service"
-      NODE_PATH="$(command -v node)"
+      NODE_PATH="$(node -e "console.log(process.execPath)")"
 
       echo "Writing systemd service to $SERVICE_FILE (requires sudo)..."
       sudo tee "$SERVICE_FILE" > /dev/null <<UNIT
@@ -114,7 +114,7 @@ UNIT
     if [[ "$INSTALL_SERVICE" =~ ^[Yy]$ ]]; then
       PLIST_LABEL="com.claude-sync.relay"
       PLIST_FILE="$HOME/Library/LaunchAgents/$PLIST_LABEL.plist"
-      NODE_PATH="$(command -v node)"
+      NODE_PATH="$(node -e "console.log(process.execPath)")"
       LOG_DIR="$HOME/Library/Logs/claude-sync"
       mkdir -p "$LOG_DIR"
 

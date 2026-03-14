@@ -10,10 +10,15 @@ export interface ConnectedPeer {
 export class PeerRegistry {
   private peers = new Map<string, ConnectedPeer>();
 
-  add(name: string, ws: WebSocket): boolean {
-    if (this.peers.has(name)) return false;
+  add(name: string, ws: WebSocket): { added: true; displaced: WebSocket | null } | { added: false } {
+    const existing = this.peers.get(name);
+    if (existing) {
+      // Displace the old connection — new one wins
+      this.peers.set(name, { name, ws, connectedAt: Date.now() });
+      return { added: true, displaced: existing.ws };
+    }
     this.peers.set(name, { name, ws, connectedAt: Date.now() });
-    return true;
+    return { added: true, displaced: null };
   }
 
   remove(name: string): boolean {
