@@ -70,13 +70,12 @@ The relay listens on port `8787` by default. Use a reverse proxy (nginx/Caddy) f
 Register the MCP server with Claude Code:
 
 ```bash
-claude mcp add \
-  --transport stdio \
-  --scope user \
-  --env "CLAUDE_SYNC_URL=ws://your-server:8787" \
-  --env "CLAUDE_SYNC_TOKEN=your-shared-secret" \
-  --env "CLAUDE_SYNC_PEER_NAME=my-machine" \
-  claude-sync -- node /path/to/ClaudeSync/packages/mcp/dist/index.js
+claude mcp add -t stdio -s user \
+  claude-sync \
+  -e "CLAUDE_SYNC_URL=ws://your-server:8787" \
+  -e "CLAUDE_SYNC_TOKEN=your-shared-secret" \
+  -e "CLAUDE_SYNC_PEER_NAME=my-machine" \
+  -- node /path/to/ClaudeSync/packages/mcp/dist/index.js
 ```
 
 Or create `.mcp.json` in your project root:

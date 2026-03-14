@@ -54,13 +54,12 @@ read -rp "Peer name for this machine (e.g. macbook-pro): " PEER_NAME
 # Register MCP server with Claude Code
 echo
 echo "Registering MCP server with Claude Code..."
-claude mcp add \
-  --transport stdio \
-  --scope user \
-  --env "CLAUDE_SYNC_URL=$SYNC_URL" \
-  --env "CLAUDE_SYNC_TOKEN=$SYNC_TOKEN" \
-  --env "CLAUDE_SYNC_PEER_NAME=$PEER_NAME" \
-  claude-sync -- node "$INSTALL_DIR/packages/mcp/dist/index.js"
+claude mcp add -t stdio -s user \
+  claude-sync \
+  -e "CLAUDE_SYNC_URL=$SYNC_URL" \
+  -e "CLAUDE_SYNC_TOKEN=$SYNC_TOKEN" \
+  -e "CLAUDE_SYNC_PEER_NAME=$PEER_NAME" \
+  -- node "$INSTALL_DIR/packages/mcp/dist/index.js"
 
 echo
 echo "=== Setup complete ==="
