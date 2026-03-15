@@ -10,6 +10,7 @@ import { sendTask } from "./tools/send-task.js";
 import { waitForResponse } from "./tools/wait-for-response.js";
 import { sendResult } from "./tools/send-result.js";
 import { checkInbox } from "./tools/check-inbox.js";
+import { waitForTask } from "./tools/wait-for-task.js";
 import { gitSync } from "./tools/git-sync.js";
 import { pingPeer } from "./tools/ping-peer.js";
 import { discoverRelay } from "./discovery.js";
@@ -133,6 +134,23 @@ server.tool(
       return { content: [{ type: "text", text: "No pending tasks." }] };
     }
     return { content: [{ type: "text", text: JSON.stringify(items, null, 2) }] };
+  },
+);
+
+server.tool(
+  "wait_for_task",
+  "Block until an incoming task arrives from another peer (event-driven, no polling)",
+  {
+    timeout: z.number().optional().describe("Timeout in ms (default: 5 minutes)"),
+  },
+  async ({ timeout }) => {
+    try {
+      const item = await waitForTask(taskStore, timeout);
+      return { content: [{ type: "text", text: JSON.stringify(item, null, 2) }] };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return { content: [{ type: "text", text: `Timed out: ${message}` }], isError: true };
+    }
   },
 );
 
