@@ -80,6 +80,9 @@ export class Relay {
       return;
     }
 
+    const target = msg.to ?? "(broadcast)";
+    console.log(`[${new Date().toISOString()}] ${msg.type} | ${senderName} → ${target}`);
+
     if (msg.type === MessageTypes.PEER_LIST) {
       const response = createMessage(
         MessageTypes.PEER_LIST_RESPONSE,
