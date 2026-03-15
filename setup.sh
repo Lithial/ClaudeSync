@@ -46,20 +46,21 @@ npm --prefix "$INSTALL_DIR" run build
 
 # Collect configuration
 echo
-read -rp "Relay server URL (e.g. ws://your-server:8787): " SYNC_URL
-read -rsp "Shared token: " SYNC_TOKEN
-echo
 read -rp "Peer name for this machine (e.g. macbook-pro): " PEER_NAME
+echo
+read -rp "Relay URL (leave blank to use mDNS auto-discovery): " SYNC_URL
 
 # Register MCP server with Claude Code
 echo
 echo "Registering MCP server with Claude Code..."
-claude mcp add -t stdio -s user \
-  claude-sync \
-  -e "CLAUDE_SYNC_URL=$SYNC_URL" \
-  -e "CLAUDE_SYNC_TOKEN=$SYNC_TOKEN" \
-  -e "CLAUDE_SYNC_PEER_NAME=$PEER_NAME" \
-  -- node "$INSTALL_DIR/packages/mcp/dist/index.js"
+
+MCP_ARGS=(-t stdio -s user claude-sync -e "CLAUDE_SYNC_PEER_NAME=$PEER_NAME")
+if [ -n "$SYNC_URL" ]; then
+  MCP_ARGS+=(-e "CLAUDE_SYNC_URL=$SYNC_URL")
+fi
+MCP_ARGS+=(-- node "$INSTALL_DIR/packages/mcp/dist/index.js")
+
+claude mcp add "${MCP_ARGS[@]}"
 
 echo
 echo "=== Setup complete ==="
@@ -71,4 +72,4 @@ echo "CLI is also available at: $INSTALL_DIR/packages/mcp/dist/cli.js"
 echo "  node $INSTALL_DIR/packages/mcp/dist/cli.js list-peers"
 echo
 echo "To start a relay server:"
-echo "  CLAUDE_SYNC_TOKEN='$SYNC_TOKEN' node $INSTALL_DIR/packages/server/dist/index.js"
+echo "  node $INSTALL_DIR/packages/server/dist/index.js"
