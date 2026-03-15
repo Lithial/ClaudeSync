@@ -32,15 +32,30 @@ client.onMessage((msg: Message) => {
     console.error(`[claude-sync] Adding task to inbox: taskId=${msg.payload.taskId}`);
     taskStore.addToInbox(msg.from, msg.payload);
     console.error(`[claude-sync] Inbox count: ${taskStore.inboxCount}`);
+    // Push notification to Claude Code
+    server.sendLoggingMessage({
+      level: "notice",
+      data: `[claude-sync] Incoming task from "${msg.from}": ${msg.payload.description}`,
+    });
+    server.server.sendResourceUpdated({ uri: "inbox://tasks" });
   } else if (msg.type === MessageTypes.TASK_RESULT) {
     taskStore.resolveTask(msg.payload.taskId, msg.payload);
   }
 });
 
-const server = new McpServer({
-  name: "claude-sync",
-  version: "0.1.0",
-});
+const server = new McpServer(
+  { name: "claude-sync", version: "0.1.0" },
+  { capabilities: { logging: {}, resources: { subscribe: true, listChanged: true } } },
+);
+
+server.resource(
+  "inbox",
+  "inbox://tasks",
+  { description: "Pending incoming tasks from peers (non-destructive read)", mimeType: "application/json" },
+  async () => ({
+    contents: [{ uri: "inbox://tasks", text: JSON.stringify(taskStore.peekInbox(), null, 2) }],
+  }),
+);
 
 server.tool(
   "ping_peer",

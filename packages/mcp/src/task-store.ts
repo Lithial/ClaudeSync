@@ -69,6 +69,10 @@ export class TaskStore {
     return items;
   }
 
+  peekInbox(): Array<{ from: string; payload: TaskRequestPayload }> {
+    return [...this.inbox];
+  }
+
   get pendingCount(): number {
     return this.pending.size;
   }
